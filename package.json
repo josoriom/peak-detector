@@ -1,0 +1,51 @@
+{
+  "name": "peak-detector",
+  "version": "0.0.1",
+  "description": "utilities",
+  "type": "module",
+  "main": "./lib/index.js",
+  "module": "./lib-esm/index.js",
+  "types": "./lib/index.d.ts",
+  "files": [
+    "lib",
+    "lib-esm",
+    "src"
+  ],
+  "scripts": {
+    "build": "npm run tsc-esm && npx webpack",
+    "check-types": "tsc --noEmit",
+    "clean": "rimraf dist lib types",
+    "eslint": "eslint src --cache",
+    "eslint-fix": "npm run eslint -- --fix",
+    "prepack": "npm run tsc",
+    "prettier": "prettier --check src",
+    "prettier-write": "prettier --write src",
+    "test": "npm run check-types && npm run eslint && npm run prettier  && npm run test-only",
+    "test-only": "jest",
+    "tsc": "npm run clean && npm run tsc-esm",
+    "tsc-esm": "tsc --project tsconfig.esm.json"
+  },
+  "keywords": [],
+  "author": "josoriom",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/eslint": "^9.6.0",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.14.12",
+    "@types/webpack": "^5.28.5",
+    "cheminfo-types": "^1.7.3",
+    "eslint": "^8.57.0",
+    "eslint-config-cheminfo-typescript": "^14.0.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.3.3",
+    "rimraf": "^6.0.1",
+    "ts-jest": "^29.2.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4",
+    "webpack": "^5.93.0"
+  },
+  "dependencies": {
+    "ml-savitzky-golay-generalized": "^4.2.0",
+    "ml-spectra-processing": "^14.5.1"
+  }
+}
