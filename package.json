@@ -12,7 +12,7 @@
     "src"
   ],
   "scripts": {
-    "build": "npm run tsc-esm && npx webpack",
+    "build": "npm run tsc-esm && cheminfo-build --entry lib-esm/index.js --root PD",
     "check-types": "tsc --noEmit",
     "clean": "rimraf dist lib types",
     "eslint": "eslint src --cache",
@@ -34,6 +34,7 @@
     "@types/jest": "^29.5.12",
     "@types/node": "^20.14.12",
     "@types/webpack": "^5.28.5",
+    "cheminfo-build": "^1.2.0",
     "cheminfo-types": "^1.7.3",
     "eslint": "^8.57.0",
     "eslint-config-cheminfo-typescript": "^12.4.0",
