@@ -14,7 +14,7 @@ export function removeNoise(
   array: NumberArray,
   options: RemoveNoiseOptions = {},
 ) {
-  const { filterOptions = { tolerance: 500 } } = options;
+  const { filterOptions = { tolerance: 200 } } = options;
   const result = array.slice();
   let counter: number = 0;
   do {

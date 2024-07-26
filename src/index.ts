@@ -1,7 +1,9 @@
-import { DataXY } from 'cheminfo-types';
+import { DataXY, FromTo } from 'cheminfo-types';
 import { RemoveNoiseOptions, removeNoise } from './utilities/removeNoise';
 import { FindPeaksOptions, findPeaks } from './utilities/findPeaks';
 import { GetBoundariesOptions, getBoundaries } from './utilities/getBoundaries';
+import { xFindClosestIndex, xMaxIndex } from 'ml-spectra-processing';
+import { Peak } from './types/Peak';
 
 export * from './utilities/getBoundaries';
 export * from './utilities/findPeaks';
@@ -23,15 +25,24 @@ export function detectPeaks(data: DataXY, options: GetPeaksOptions = {}) {
   } = options;
   const { x } = data;
   const y = removeNoise(data.y, removeNoiseOptions);
-  const peaks = findPeaks({ x, y }, findPeaksOptions);
-  const result = [];
+  const datum = { x, y };
+  const peaks = findPeaks(datum, findPeaksOptions);
+  const result: Peak[] = [];
   for (const peak of peaks) {
-    const boundaries = getBoundaries({ x, y }, peak, getBoundariesOptions);
+    const boundaries = getBoundaries(datum, peak, getBoundariesOptions);
     result.push({
       from: boundaries.from.value,
       fromIndex: boundaries.from.index,
       to: boundaries.to.value,
       toIndex: boundaries.to.index,
+      retentionTime: getRetentionTime(datum, {
+        from: boundaries.from.index,
+        to: boundaries.to.index,
+      }),
+      integral: getAuc(datum, {
+        from: boundaries.from.value,
+        to: boundaries.to.value,
+      }),
     });
   }
   return result.filter((peak) =>
@@ -44,6 +55,25 @@ interface FilterSmallPeaksOptions {
 }
 
 function filterSmallPeaks(peak, options: FilterSmallPeaksOptions = {}) {
-  const { widthThreshold = 10 } = options;
+  const { widthThreshold = 12 } = options;
   if (peak.toIndex - peak.fromIndex > widthThreshold) return true;
+}
+
+function getRetentionTime(data: DataXY, fromTo: FromTo) {
+  const ySlice = data.y.slice(fromTo.from, fromTo.to);
+  const xSlice = data.x.slice(fromTo.from, fromTo.to);
+  const index = xMaxIndex(ySlice);
+  return xSlice[index];
+}
+
+function getAuc(eic: DataXY, fromTo: FromTo) {
+  const { from, to } = fromTo;
+  const fromIndex = xFindClosestIndex(eic.x, from);
+  const toIndex = xFindClosestIndex(eic.x, to);
+
+  let auc = 0;
+  for (let i = fromIndex; i < toIndex; i++) {
+    auc += eic.y[i];
+  }
+  return auc;
 }

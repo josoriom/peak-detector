@@ -40,7 +40,7 @@ export function findPeaks(data: DataXY, options: FindPeaksOptions = {}) {
   const { x } = data;
   const {
     epsilon = 1e-5,
-    sggOptions = { windowSize: 13, derivative: 1, polynomial: 3 },
+    sggOptions = { windowSize: 15, derivative: 1, polynomial: 3 },
   } = options;
   const peaks = [];
   let isRecording = false;

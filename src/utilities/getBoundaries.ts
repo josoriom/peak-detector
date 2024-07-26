@@ -22,7 +22,7 @@ export function getBoundaries(
 ) {
   const {
     boundariesOptions = { epsilon: 1e-5 },
-    SGGOptions = { windowSize: 13, derivative: 0, polynomial: 3 },
+    SGGOptions = { windowSize: 17, derivative: 0, polynomial: 3 },
   } = options;
   const { x, y } = data;
   const index = xFindClosestIndex(x, peakPosition);
