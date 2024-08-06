@@ -1,9 +1,11 @@
 import { DataXY, FromTo } from 'cheminfo-types';
-import { RemoveNoiseOptions, removeNoise } from './removeNoise';
+import { xFindClosestIndex, xMaxIndex } from 'ml-spectra-processing';
+
+import { Peak } from '../types/Peak';
+
 import { FindPeaksOptions, findPeaks } from './findPeaks';
 import { GetBoundariesOptions, getBoundaries } from './getBoundaries';
-import { xFindClosestIndex, xMaxIndex } from 'ml-spectra-processing';
-import { Peak } from '../types/Peak';
+import { RemoveNoiseOptions, removeNoise } from './removeNoise';
 
 export interface DetectPeaksOptions {
   findPeaksOptions?: FindPeaksOptions;
@@ -49,12 +51,12 @@ interface FilterPeaksOptions {
   widthThreshold?: number;
 }
 
-function filterPeaks(peaks, options: FilterPeaksOptions = {}) {
+function filterPeaks(peaks: Peak[], options: FilterPeaksOptions = {}) {
   const { integralThreshold = 0.005, widthThreshold = 15 } = options;
   let sumOfIntegrals = 0;
   if (integralThreshold !== undefined) {
-    for (let i = 0; i < peaks.length; i++) {
-      sumOfIntegrals += peaks[i].integral;
+    for (const peak of peaks) {
+      sumOfIntegrals += peak.integral;
     }
   }
 

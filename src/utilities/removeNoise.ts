@@ -16,7 +16,7 @@ export function removeNoise(
 ) {
   const { filterOptions = { tolerance: 200 } } = options;
   const result = array.slice();
-  let counter: number = 0;
+  let counter = 0;
   do {
     counter = 0;
     const values = result.filter((item) => item !== 0);

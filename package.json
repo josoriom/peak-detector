@@ -20,6 +20,7 @@
     "prettier": "prettier --check src",
     "prettier-write": "prettier --write src",
     "test": "npm run check-types && npm run eslint && npm run prettier  && npm run test-only",
+    "test-coverage": "npm run test-only -- --coverage",
     "test-only": "jest",
     "tsc": "npm run clean && npm run tsc-cjs && npm run tsc-esm",
     "tsc-cjs": "tsc --project tsconfig.cjs.json",
