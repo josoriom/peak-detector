@@ -1,46 +1,39 @@
-import { DataXY, FromTo } from 'cheminfo-types';
-import { xFindClosestIndex, xMaxIndex } from 'ml-spectra-processing';
+import { DataXY } from 'cheminfo-types';
 
 import { Peak } from '../types/Peak';
 
-import { FindPeaksOptions, findPeaks } from './findPeaks';
 import { GetBoundariesOptions, getBoundaries } from './getBoundaries';
-import { RemoveNoiseOptions, removeNoise } from './removeNoise';
+import { GetPeaksOptions } from '../types/GetPeaksOptions';
+import { getPeaks } from './getPeaks';
 
 export interface DetectPeaksOptions {
-  findPeaksOptions?: FindPeaksOptions;
-  removeNoiseOptions?: RemoveNoiseOptions;
+  getPeaksOptions?: GetPeaksOptions;
   getBoundariesOptions?: GetBoundariesOptions;
   filterPeaksOptions?: FilterPeaksOptions;
 }
 
 export function detectPeaks(data: DataXY, options: DetectPeaksOptions = {}) {
-  const {
-    removeNoiseOptions,
-    findPeaksOptions,
-    getBoundariesOptions,
-    filterPeaksOptions,
-  } = options;
-  const { x } = data;
-  const y = removeNoise(data.y, removeNoiseOptions);
-  const datum = { x, y };
-  const peaks = findPeaks(datum, findPeaksOptions);
+  const { getPeaksOptions, getBoundariesOptions, filterPeaksOptions } = options;
+  const peaks = getPeaks(data, getPeaksOptions);
   const result: Peak[] = [];
   for (const peak of peaks) {
-    const boundaries = getBoundaries(datum, peak, getBoundariesOptions);
+    const boundaries = getBoundaries(
+      data,
+      peak.retentionTime,
+      getBoundariesOptions,
+    );
+    const fromIndex = boundaries.from.index;
+    const toIndex = boundaries.to.index;
     result.push({
       from: boundaries.from.value,
-      fromIndex: boundaries.from.index,
+      fromIndex,
       to: boundaries.to.value,
-      toIndex: boundaries.to.index,
-      retentionTime: getRetentionTime(datum, {
-        from: boundaries.from.index,
-        to: boundaries.to.index,
-      }),
-      integral: getAuc(datum, {
-        from: boundaries.from.value,
-        to: boundaries.to.value,
-      }),
+      toIndex,
+      retentionTime: peak.retentionTime,
+      integral: peak.integral,
+      intensity: peak.intensity,
+      width: peak.width,
+      numberOfPoints: toIndex - fromIndex,
     });
   }
   return filterPeaks(result, filterPeaksOptions);
@@ -52,7 +45,7 @@ interface FilterPeaksOptions {
 }
 
 function filterPeaks(peaks: Peak[], options: FilterPeaksOptions = {}) {
-  const { integralThreshold = 0.005, widthThreshold = 15 } = options;
+  const { integralThreshold = 0.004, widthThreshold = 10 } = options;
   let sumOfIntegrals = 0;
   if (integralThreshold !== undefined) {
     for (const peak of peaks) {
@@ -83,26 +76,4 @@ function filterPeaks(peaks: Peak[], options: FilterPeaksOptions = {}) {
   }
 
   return result;
-}
-
-function getRetentionTime(data: DataXY, fromTo: FromTo) {
-  const ySlice = data.y.slice(fromTo.from, fromTo.to);
-  const xSlice = data.x.slice(fromTo.from, fromTo.to);
-  if (ySlice.length === 0) {
-    return 0;
-  }
-  const index = xMaxIndex(ySlice);
-  return xSlice[index];
-}
-
-function getAuc(eic: DataXY, fromTo: FromTo) {
-  const { from, to } = fromTo;
-  const fromIndex = xFindClosestIndex(eic.x, from);
-  const toIndex = xFindClosestIndex(eic.x, to);
-
-  let auc = 0;
-  for (let i = fromIndex; i < toIndex; i++) {
-    auc += eic.y[i];
-  }
-  return auc;
 }
