@@ -5,23 +5,28 @@ import { Peak } from '../types/Peak';
 import { GetBoundariesOptions, getBoundaries } from './getBoundaries';
 import { GetPeaksOptions } from '../types/GetPeaksOptions';
 import { getPeaks } from './getPeaks';
+import { FindPeaksOptions, findPeaks } from './findPeaks';
+import { FromTo } from '../types/FromTo';
+import { xMaxValue } from 'ml-spectra-processing';
 
 export interface DetectPeaksOptions {
   getPeaksOptions?: GetPeaksOptions;
   getBoundariesOptions?: GetBoundariesOptions;
   filterPeaksOptions?: FilterPeaksOptions;
+  findPeakOptions?: FindPeaksOptions;
 }
 
 export function detectPeaks(data: DataXY, options: DetectPeaksOptions = {}) {
-  const { getPeaksOptions, getBoundariesOptions, filterPeaksOptions } = options;
-  const peaks = getPeaks(data, getPeaksOptions);
+  const {
+    getPeaksOptions,
+    getBoundariesOptions,
+    filterPeaksOptions,
+    findPeakOptions,
+  } = options;
+  const peaks = findPeaks(data, findPeakOptions);
   const result: Peak[] = [];
   for (const peak of peaks) {
-    const boundaries = getBoundaries(
-      data,
-      peak.retentionTime,
-      getBoundariesOptions,
-    );
+    const boundaries = getBoundaries(data, peak, getBoundariesOptions);
     const fromIndex = boundaries.from.index;
     const toIndex = boundaries.to.index;
     result.push({
@@ -29,10 +34,10 @@ export function detectPeaks(data: DataXY, options: DetectPeaksOptions = {}) {
       fromIndex,
       to: boundaries.to.value,
       toIndex,
-      retentionTime: peak.retentionTime,
-      integral: peak.integral,
-      intensity: peak.intensity,
-      width: peak.width,
+      retentionTime: peak,
+      integral: getAuc(data, { from: fromIndex, to: toIndex }),
+      intensity: xMaxValue(data.y.slice(fromIndex, toIndex)),
+      width: boundaries.to.value - boundaries.from.value,
       numberOfPoints: toIndex - fromIndex,
     });
   }
@@ -76,4 +81,13 @@ function filterPeaks(peaks: Peak[], options: FilterPeaksOptions = {}) {
   }
 
   return result;
+}
+
+function getAuc(eic: DataXY, fromTo: FromTo) {
+  const { from, to } = fromTo;
+  let auc = 0;
+  for (let i = from; i < to; i++) {
+    auc += eic.y[i];
+  }
+  return auc;
 }

@@ -1,6 +1,6 @@
 {
   "name": "peak-detector",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "utilities",
   "main": "./lib/index.js",
   "module": "./lib-esm/index.js",
